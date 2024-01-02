@@ -1,2 +1,12 @@
 # KafkaTutorial
 Kafka Tutorial
+
+## Links
+* [Apache Kafka Quickstart](https://kafka.apache.org/quickstart)
+* [What Is Apache Kafka?](https://developer.confluent.io/what-is-apache-kafka/)
+* [Getting Started with Apache Kafka and C/C++](https://developer.confluent.io/get-started/c/#prerequisites)
+* [Apache Kafka Tutorial — Kafka For Beginners](https://medium.com/@patelharshali136/apache-kafka-tutorial-kafka-for-beginners-a58140cef84f)
+* [Starting with Apache Kafka](https://medium.com/@danielchristofolli/starting-with-apache-kafka-ae20669a8160)
+* [Steps to Install Kafka on Ubuntu 20.04](https://hevodata.com/blog/how-to-install-kafka-on-ubuntu/)
+* [Setting up Kafka on Docker for Local Development](https://hackernoon.com/setting-up-kafka-on-docker-for-local-development)
+* <https://github.com/dchristofolli/kafka-sample/blob/main/docker-compose.yml>
