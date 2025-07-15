@@ -10,3 +10,4 @@ Kafka Tutorial
 * [Steps to Install Kafka on Ubuntu 20.04](https://hevodata.com/blog/how-to-install-kafka-on-ubuntu/)
 * [Setting up Kafka on Docker for Local Development](https://hackernoon.com/setting-up-kafka-on-docker-for-local-development)
 * <https://github.com/dchristofolli/kafka-sample/blob/main/docker-compose.yml>
+* [Monitoring Kafka in Kubernetes with Prometheus and Grafana](https://vkontech.com/monitoring-kafka-in-kubernetes-with-prometheus-and-grafana/)
