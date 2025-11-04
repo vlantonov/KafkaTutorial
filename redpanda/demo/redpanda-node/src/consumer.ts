@@ -4,7 +4,7 @@ import {Kafka} from 'kafkajs';
 
 const kafka = new Kafka({
   clientId: 'chat-app',
-  brokers: ['127.0.0.1:9092']
+  brokers: ['0.0.0.0:9092']
 });
 
 const consumer = kafka.consumer({ groupId: uuidv4() }); // we need a unique groupId I'll explain down

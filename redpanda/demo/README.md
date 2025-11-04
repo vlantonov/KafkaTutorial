@@ -4,6 +4,23 @@
 * `docker exec -it redpanda rpk topic create chat-room --brokers=localhost:9092`
 * `docker exec -it redpanda rpk topic list`
 
+## Redpanda node
+```
+#create and enter the project folder
+mkdir redpanda-node
+cd redpanda-node
+#generate package.json
+npm init
+#install needed dependencies
+npm i -g typescript
+npm i -D @types/node
+npm i kafkajs
+npm i uuid
+npm i -D @types/uuid
+#generate tsconfig.json
+tsc --init
+```
+
 ## Visualize metrics using Grafana
 
 ### Configure Prometheus Data Source in Grafana
