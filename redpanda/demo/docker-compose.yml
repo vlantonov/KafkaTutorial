@@ -36,6 +36,8 @@ services:
       - monitor-net
     ports:
     - 3000:3000
+    depends_on:
+      - prometheus
 
   prometheus:
     image: prom/prometheus
@@ -47,8 +49,7 @@ services:
     networks:
       - monitor-net
     volumes:
-    - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    - prometheus-data:/prometheus  # Use named volume for data
+      - ./prometheus-data/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'  # Use standard path
@@ -58,6 +59,8 @@ services:
       - '--web.enable-lifecycle'
     labels:
       org.label-schema.group: "monitoring"
+    depends_on:
+      - otel-collector
 
   otel-collector:
     image: otel/opentelemetry-collector
@@ -78,10 +81,9 @@ services:
       - "4317:4317"   # OTLP gRPC receiver
       - "4318:4318"   # OTLP http receiver
       - "55679:55679" # zpages extension
+    depends_on:
+      - redpanda
 
 networks:
   monitor-net:
     driver: bridge
-
-volumes:
-  prometheus-data:
