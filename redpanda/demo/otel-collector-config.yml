@@ -15,8 +15,10 @@ processors:
   batch:
 
 exporters:
-  logging:
-    logLevel: debug
+  debug:
+    verbosity: detailed
+    sampling_initial: 5
+    sampling_thereafter: 200
 
   prometheus:
     endpoint: "0.0.0.0:8889"
