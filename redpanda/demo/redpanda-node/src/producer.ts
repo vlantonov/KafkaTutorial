@@ -3,7 +3,11 @@ import {Kafka} from 'kafkajs';
 
 const kafka = new Kafka({
   clientId: 'chat-app',
-  brokers: ['0.0.0.0:9092']
+  brokers: ['redpanda:9092'],
+  retry: {
+    initialRetryTime: 300,
+    retries: 10,
+  }
 });
 
 const producer = kafka.producer();

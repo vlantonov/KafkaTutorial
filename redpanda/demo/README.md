@@ -21,6 +21,13 @@ npm i -D @types/uuid
 tsc --init
 ```
 
+### Docker
+```
+cd redpanda-node
+docker build . -t demo_client
+docker run -it --rm  --network demo_monitor-net demo_client
+```
+
 ## Visualize metrics using Grafana
 
 ### Configure Prometheus Data Source in Grafana
