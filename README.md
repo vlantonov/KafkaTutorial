@@ -11,3 +11,4 @@ Kafka Tutorial
 * [Setting up Kafka on Docker for Local Development](https://hackernoon.com/setting-up-kafka-on-docker-for-local-development)
 * <https://github.com/dchristofolli/kafka-sample/blob/main/docker-compose.yml>
 * [Monitoring Kafka in Kubernetes with Prometheus and Grafana](https://vkontech.com/monitoring-kafka-in-kubernetes-with-prometheus-and-grafana/)
+* [Kafka Crash Course - Hands-On Project](https://www.youtube.com/watch?v=B7CwU_tNYIE)
