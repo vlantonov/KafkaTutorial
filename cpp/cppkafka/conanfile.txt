@@ -1,0 +1,9 @@
+[requires]
+cppkafka/0.4.1
+
+[generators]
+CMakeDeps
+CMakeToolchain
+
+[layout]
+cmake_layout
