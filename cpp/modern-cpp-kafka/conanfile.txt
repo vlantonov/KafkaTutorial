@@ -1,0 +1,9 @@
+[requires]
+modern-cpp-kafka/2024.07.03
+
+[generators]
+CMakeDeps
+CMakeToolchain
+
+[layout]
+cmake_layout
