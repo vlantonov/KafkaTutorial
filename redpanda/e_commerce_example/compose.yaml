@@ -29,7 +29,7 @@ services:
       - redpanda
 
   api-gateway:
-    image: nginx:alpine
+    image: nginx:1.29.3-alpine-slim
     ports:
       - "80:80"
     volumes:
@@ -40,7 +40,7 @@ services:
       - order-service
 
   postgres:
-    image: postgres:alpine
+    image: postgres:18.1-alpine3.22
     environment:
       POSTGRES_PASSWORD: mysecretpassword
     volumes:
