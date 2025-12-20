@@ -12,3 +12,4 @@ Kafka Tutorial
 * <https://github.com/dchristofolli/kafka-sample/blob/main/docker-compose.yml>
 * [Monitoring Kafka in Kubernetes with Prometheus and Grafana](https://vkontech.com/monitoring-kafka-in-kubernetes-with-prometheus-and-grafana/)
 * [Kafka Crash Course - Hands-On Project](https://www.youtube.com/watch?v=B7CwU_tNYIE)
+* <github.com/ndymko/kafka-article-2>, <github.com/ndymko/kafka-article-3> , <github.com/ndymko/kafka-article-4>
