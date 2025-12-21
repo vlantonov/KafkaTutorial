@@ -1,0 +1,92 @@
+# https://github.com/ndymko/kafka-article-2/blob/master/docker-compose.yaml
+services:
+  kafka-0:
+    image: confluentinc/cp-kafka:8.1.0
+    # Container name
+    container_name: kafka-0
+    # Container hostname
+    hostname: kafka-0
+    # Forward ports to send messages to Kafka from the host
+    ports:
+      - "29092:29092"
+    environment:
+      # Unique cluster ID in UUID format
+      # Can be generated via command
+      # docker run confluentinc/cp-kafka:8.1.0 kafka-storage random-uuid
+      CLUSTER_ID: ZETVJENWRjaECDUEExP_eg
+      # Unique ID of the node inside the cluster
+      KAFKA_NODE_ID: 0
+      # Node is both controller and broker
+      KAFKA_PROCESS_ROLES: broker,controller
+      # "Listeners" are used to specify how to connect to the Kafka node,
+      # That is, Kafka will open ports and listen for connections on them
+      # In our case, the first word is Alias, ://: - on all network interfaces,
+      # The port at the end
+      KAFKA_LISTENERS: INTERNAL://:9091,EXTERNAL://:29092,CONTROLLER://:9093
+      # We list the nodes that are controllers in the format
+      # [NodeID]@[Hostname]:[Port]
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 0@kafka-0:9093,1@kafka-1:9093,2@kafka-2:9093
+      # Here we specify where Kafka will "redirect" the client after
+      # How it connects to it. We don't specify the controller, as this is needed
+      # Only for internal Kafka operations
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-0:9091,EXTERNAL://localhost:29092
+      # Configure encryption and authentication protocols for each "Listener"
+      # In our case PLAINTEXT means its absence
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      # We indicate that the "Listener" CONTROLLER is used for the controller.
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # We indicate that for brokers, the "Listener" INTERNAL is used
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  kafka-1:
+    image: confluentinc/cp-kafka:8.1.0
+    container_name: kafka-1
+    hostname: kafka-1
+    ports:
+      - "29093:29092"
+    environment:
+      CLUSTER_ID: ZETVJENWRjaECDUEExP_eg
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INTERNAL://:9091,EXTERNAL://:29092,CONTROLLER://:9093
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 0@kafka-0:9093,1@kafka-1:9093,2@kafka-2:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-1:9091,EXTERNAL://localhost:29093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  kafka-2:
+    image: confluentinc/cp-kafka:8.1.0
+    container_name: kafka-2
+    hostname: kafka-2
+    ports:
+      - "29094:29092"
+    environment:
+      CLUSTER_ID: ZETVJENWRjaECDUEExP_eg
+      KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INTERNAL://:9091,EXTERNAL://:29092,CONTROLLER://:9093
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 0@kafka-0:9093,1@kafka-1:9093,2@kafka-2:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-2:9091,EXTERNAL://localhost:29094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:v0.7.2
+    container_name: kafka-ui
+    hostname: kafka-ui
+    depends_on:
+      - kafka-0
+      - kafka-1
+      - kafka-2
+    ports:
+      - "8086:8080"
+    environment:
+      # Name of the cluster in the web interface
+      KAFKA_CLUSTERS_0_NAME: local
+      # Find out the address of our brokers in the cluster
+      # As well as the Kafka UI and brokers in the Docker network, this is the port 9091
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-0:9091,kafka-1:9091,kafka-2:9091
+      # Dynamic configuration system for brokers in the UI
+      DYNAMIC_CONFIG_ENABLED: "true"
