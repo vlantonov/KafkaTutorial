@@ -1,0 +1,106 @@
+services:
+  # Single-node Kafka broker in KRaft mode (no ZooKeeper). Transaction state
+  # settings are tuned for a single broker so exactly-once semantics work.
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    hostname: kafka
+    container_name: spp-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      KAFKA_LISTENERS: "PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "kafka:9092", "--list"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  # Creates the input and output topics with multiple partitions so the
+  # partitioning / backpressure behaviour is realistic.
+  topic-init:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: spp-topic-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -e
+        # Single input partition keeps global event-time order for windowing.
+        # (Multiple partitions would require per-partition watermark tracking.)
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists \
+          --topic events-input --partitions 1 --replication-factor 1
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists \
+          --topic events-windowed --partitions 1 --replication-factor 1
+        echo "topics ready:"
+        kafka-topics --bootstrap-server kafka:9092 --list
+
+  # Exactly-once stream processor: windowing + dedup + backpressure.
+  processor:
+    build: .
+    image: spp-cpp:latest
+    container_name: spp-processor
+    depends_on:
+      topic-init:
+        condition: service_completed_successfully
+    environment:
+      BROKERS: kafka:9092
+      INPUT_TOPIC: events-input
+      OUTPUT_TOPIC: events-windowed
+      GROUP_ID: spp-processor
+      TRANSACTIONAL_ID: spp-processor-txn
+      WINDOW_MS: 2000
+      ALLOWED_LATENESS_MS: 1000
+      COMMIT_INTERVAL_MS: 1000
+      MAX_BUFFERED: 120
+      RESUME_BUFFERED: 40
+      IDLE_FLUSH_MS: 4000
+      PROCESS_COST_MS: 8
+    command: ["processor"]
+    restart: on-failure
+
+  # Reads committed window results and checks for duplicate windows.
+  verifier:
+    image: spp-cpp:latest
+    container_name: spp-verifier
+    depends_on:
+      processor:
+        condition: service_started
+    environment:
+      BROKERS: kafka:9092
+      OUTPUT_TOPIC: events-windowed
+      GROUP_ID: spp-verifier
+    command: ["verifier"]
+    restart: on-failure
+
+  # Generates the event stream (with duplicates and late events), then exits.
+  producer:
+    image: spp-cpp:latest
+    container_name: spp-producer
+    depends_on:
+      topic-init:
+        condition: service_completed_successfully
+    environment:
+      BROKERS: kafka:9092
+      INPUT_TOPIC: events-input
+      NUM_EVENTS: 300
+      DUP_PERCENT: 15
+      LATE_PERCENT: 10
+      EVENT_INTERVAL_MS: 50
+      PRODUCE_DELAY_MS: 0
+    command: ["producer"]
+    restart: "no"
