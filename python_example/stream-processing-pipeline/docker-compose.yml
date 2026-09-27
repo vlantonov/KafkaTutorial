@@ -1,0 +1,94 @@
+services:
+  # ---------------------------------------------------------------------------
+  # Single-node Kafka broker running in KRaft mode (no ZooKeeper).
+  # Transaction settings are tuned for a single broker so that the Faust
+  # app can use exactly-once (transactional) processing.
+  # ---------------------------------------------------------------------------
+  kafka:
+    image: apache/kafka:3.8.1
+    container_name: kafka
+    ports:
+      - "29092:29092" # host access via localhost:29092 (optional/debug)
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,EXTERNAL://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # Single-broker replication / ISR settings (required for exactly-once).
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 1
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # One-shot: create the source/sink topics up front. The Faust worker treats
+  # `events` as an external source topic and will only subscribe to it if it
+  # already exists at rebalance time, so it must be created before `app` starts.
+  # ---------------------------------------------------------------------------
+  init-topics:
+    image: apache/kafka:3.8.1
+    container_name: init-topics
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        for t in events processed-events; do
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 \
+            --create --if-not-exists --topic "$$t" --partitions 1 --replication-factor 1
+        done
+        echo "topics ready"
+    restart: "no"
+
+  # ---------------------------------------------------------------------------
+  # Faust stream-processing worker: dedup + tumbling-window aggregation +
+  # bounded-buffer backpressure + exactly-once consume-process-produce.
+  # ---------------------------------------------------------------------------
+  app:
+    build: .
+    container_name: stream-app
+    depends_on:
+      kafka:
+        condition: service_healthy
+      init-topics:
+        condition: service_completed_successfully
+    environment:
+      KAFKA_BROKER: "kafka://kafka:9092"
+      PROCESS_DELAY: "0.25"          # slow work -> exercises backpressure
+      WINDOW_SIZE: "10.0"            # tumbling window size in seconds
+      STREAM_BUFFER_MAXSIZE: "8"     # bounded in-memory buffer (backpressure)
+    command: ["faust", "-A", "app.worker", "worker", "-l", "info"]
+
+  # ---------------------------------------------------------------------------
+  # Event generator. Emits events and deliberately re-sends some ids so the
+  # dedup logic in the stream app has duplicates to drop.
+  # ---------------------------------------------------------------------------
+  producer:
+    build: .
+    container_name: event-producer
+    depends_on:
+      kafka:
+        condition: service_healthy
+      init-topics:
+        condition: service_completed_successfully
+    environment:
+      KAFKA_BOOTSTRAP: "kafka:9092"
+      NUM_EVENTS: "60"
+      DUP_RATE: "0.25"               # ~25% of sends re-use a previous id
+      PRODUCE_DELAY: "0.05"          # fast producer vs. slow consumer
+      STARTUP_DELAY: "10"            # let the worker join the group first
+    command: ["python", "-m", "app.producer"]
+    restart: "no"
