@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kafka-client
+  namespace: kafka
+  labels:
+    app: kafka-client
+spec:
+  containers:
+    - name: kafka-client
+      image: quay.io/strimzi/kafka:latest-kafka-3.8.0
+      command:
+        - /bin/sh
+        - -c
+        - sleep infinity
+  restartPolicy: Always

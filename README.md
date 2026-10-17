@@ -1,6 +1,10 @@
 # KafkaTutorial
 Kafka Tutorial
 
+## Samples
+
+* [Strimzi on Kubernetes demo](./samples/strimzi_kubernetes/README.md)
+
 ## Links
 * [Apache Kafka Quickstart](https://kafka.apache.org/quickstart)
 * [What Is Apache Kafka?](https://developer.confluent.io/what-is-apache-kafka/)
