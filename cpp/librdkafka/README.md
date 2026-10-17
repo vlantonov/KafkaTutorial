@@ -29,6 +29,7 @@ librdkafka is the underlying C library used by most Kafka client implementations
 -  Message counter and acknowledgment
 -  Error handling and reporting
 -  Exactly-once transactional producer sample
+-  Schema Registry wire-format producers (Avro and Protobuf)
 
 ### Consumer Features
 -  Topic subscription with consumer groups
@@ -190,6 +191,40 @@ Run two consumers in the same group to trigger rebalancing and partition movemen
 [REBALANCE] ASSIGNED 1 partition(s): test-topic[0]
 [REBALANCE] REVOKED 1 partition(s): test-topic[0]
 [REBALANCE] ASSIGNED 1 partition(s): test-topic[0]
+```
+
+### Schema Registry + Avro / Protobuf Producers
+
+These examples publish records using Confluent wire format:
+- `magic-byte (0)` + `schema-id` + encoded payload
+- Protobuf example also includes message index `[0]`.
+
+Register schemas first:
+
+```bash
+# Avro schema
+curl -s -X POST http://localhost:8081/subjects/avro-user-events-value/versions \
+  -H 'Content-Type: application/vnd.schemaregistry.v1+json' \
+  -d '{"schema":"{\"type\":\"record\",\"name\":\"UserEvent\",\"namespace\":\"tutorial\",\"fields\":[{\"name\":\"user_id\",\"type\":\"string\"},{\"name\":\"action\",\"type\":\"string\"},{\"name\":\"event_ts\",\"type\":\"long\"}]}"}'
+
+# Protobuf schema
+curl -s -X POST http://localhost:8081/subjects/proto-user-events-value/versions \
+  -H 'Content-Type: application/vnd.schemaregistry.v1+json' \
+  -d '{"schemaType":"PROTOBUF","schema":"syntax = \"proto3\"; package tutorial; message UserEvent { string user_id = 1; string action = 2; int64 event_ts = 3; }"}'
+```
+
+Run producers using the schema IDs returned by Schema Registry:
+
+```bash
+./rdkafka_schema_registry_avro_producer localhost:9092 avro-user-events <avro-schema-id>
+./rdkafka_schema_registry_protobuf_producer localhost:9092 proto-user-events <protobuf-schema-id>
+```
+
+Example output:
+
+```bash
+Produced Avro message to topic 'avro-user-events' with schema_id=1
+Produced Protobuf message to topic 'proto-user-events' with schema_id=2
 ```
 
 ### Running Producer and Consumer Together
