@@ -4,6 +4,7 @@ This project demonstrates how to use Apache Kafka with C++ using librdkafka dire
 
 This project provides a practical example of integrating Apache Kafka with C++ applications. It demonstrates:
 - Message production and consumption
+- Transactional exactly-once producer flow
 - Consumer group management
 - Offset handling
 - Error management
@@ -27,6 +28,7 @@ librdkafka is the underlying C library used by most Kafka client implementations
 -  Synchronous delivery with flush
 -  Message counter and acknowledgment
 -  Error handling and reporting
+-  Exactly-once transactional producer sample
 
 ### Consumer Features
 -  Topic subscription with consumer groups
@@ -102,6 +104,23 @@ Testing the producer
 Sent message #2: Testing the producer
 ^C
 Total messages sent: 3
+```
+
+### Transactional Producer (Exactly Once)
+
+The transactional producer sends a small batch in one Kafka transaction. If any step fails, the transaction is aborted.
+
+**Basic Usage:**
+```bash
+./rdkafka_transactional_producer
+```
+
+**With Custom Configuration:**
+```bash
+./rdkafka_transactional_producer <broker-address> <topic-name>
+
+# Example
+./rdkafka_transactional_producer localhost:9092 test-topic
 ```
 
 ### Consumer
