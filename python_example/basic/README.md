@@ -60,6 +60,14 @@ With ENTRYPOINT
 
    `docker run --network=host python-kafka ./producer.py`
 
+## Start exactly-once transactional producer
+
+This example uses `confluent-kafka` with Kafka transactions (`transactional.id` + idempotence) to produce a committed batch atomically.
+
+With ENTRYPOINT
+
+   `docker run --network=host python-kafka ./transactional_producer.py`
+
 ## Start Kafka consumer
 
    `docker run --network=host python-kafka ./consumer.py`

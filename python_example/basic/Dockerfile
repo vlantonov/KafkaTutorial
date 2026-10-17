@@ -3,6 +3,7 @@ FROM python:3.10-slim-bullseye
 ADD requirements.txt .
 ADD consumer.py .
 ADD producer.py .
+ADD transactional_producer.py .
 
 RUN pip install -r requirements.txt
 
