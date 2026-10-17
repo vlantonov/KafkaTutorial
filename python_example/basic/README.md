@@ -92,6 +92,31 @@ Example output:
 [00:12:16] ASSIGNED 1 partition(s): my_test_topic[0]
 ```
 
+## Schema Registry + Avro / Protobuf demo
+
+Start Schema Registry (expects Kafka broker on `localhost:9093`):
+
+`docker run --rm --network=host -p 8081:8081 -e SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS=PLAINTEXT://localhost:9093 -e SCHEMA_REGISTRY_HOST_NAME=localhost -e SCHEMA_REGISTRY_LISTENERS=http://0.0.0.0:8081 confluentinc/cp-schema-registry:7.7.0`
+
+Run Avro demo (registers schema, produces, then consumes one record):
+
+`docker run --network=host python-kafka ./schema_registry_avro_demo.py`
+
+Run Protobuf demo (registers schema, produces, then consumes one record):
+
+`docker run --network=host python-kafka ./schema_registry_protobuf_demo.py`
+
+Expected logs include schema IDs from Schema Registry:
+
+```
+Registered/loaded Avro schema id=1 subject=avro-user-events-value
+Produced Avro event to 'avro-user-events': {'user_id': 'u-42', ...}
+Consumed Avro event schema_id=1: {'user_id': 'u-42', ...}
+Registered/loaded Protobuf schema id=2 subject=proto-user-events-value
+Produced Protobuf event to 'proto-user-events': {'user_id': 'u-84', ...}
+Consumed Protobuf event schema_id=2: {'user_id': 'u-84', ...}
+```
+
 Can be checked by
 
    `kafka-console-consumer --topic my_test_topic --bootstrap-server localhost:9092`
