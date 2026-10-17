@@ -72,6 +72,26 @@ With ENTRYPOINT
 
    `docker run --network=host python-kafka ./consumer.py`
 
+## Start consumer rebalance demo (partition reassignment logs)
+
+Run two consumers with the same group to observe `ASSIGNED` / `REVOKED` logs when partitions are moved between members.
+
+Terminal 1:
+
+   `docker run --network=host python-kafka ./rebalance_consumer.py`
+
+Terminal 2:
+
+   `docker run --network=host python-kafka ./rebalance_consumer.py`
+
+Example output:
+
+```
+[00:12:10] ASSIGNED 1 partition(s): my_test_topic[0]
+[00:12:16] REVOKED 1 partition(s): my_test_topic[0]
+[00:12:16] ASSIGNED 1 partition(s): my_test_topic[0]
+```
+
 Can be checked by
 
    `kafka-console-consumer --topic my_test_topic --bootstrap-server localhost:9092`

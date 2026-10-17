@@ -4,6 +4,7 @@ ADD requirements.txt .
 ADD consumer.py .
 ADD producer.py .
 ADD transactional_producer.py .
+ADD rebalance_consumer.py .
 
 RUN pip install -r requirements.txt
 
