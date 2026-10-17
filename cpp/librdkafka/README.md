@@ -37,6 +37,7 @@ librdkafka is the underlying C library used by most Kafka client implementations
 -  Graceful shutdown with signal handling
 -  Configurable starting position (earliest/latest)
 -  Real-time message processing
+-  Consumer rebalance demo with partition reassignment logs
 
 
 ## Prerequisites
@@ -165,6 +166,30 @@ Received message #1
 
 ^C
 Shutting down. Total messages received: 2
+```
+
+### Rebalance Consumer (Partition Reassignment Demo)
+
+Run two consumers in the same group to trigger rebalancing and partition movement logs.
+
+**Basic Usage:**
+```bash
+./rdkafka_rebalance_consumer
+```
+
+**With Custom Configuration:**
+```bash
+./rdkafka_rebalance_consumer <broker-address> <topic-name> <consumer-group-id>
+
+# Example
+./rdkafka_rebalance_consumer localhost:9092 test-topic rebalance-demo-group
+```
+
+**Rebalance Log Example:**
+```bash
+[REBALANCE] ASSIGNED 1 partition(s): test-topic[0]
+[REBALANCE] REVOKED 1 partition(s): test-topic[0]
+[REBALANCE] ASSIGNED 1 partition(s): test-topic[0]
 ```
 
 ### Running Producer and Consumer Together
